@@ -1,0 +1,45 @@
+version: '3'
+
+services:
+    web:
+        build: . 
+        command: python accountability_project/manage.py runserver 0.0.0.0:8000 
+        volumes:
+            - .:/code 
+        ports:
+            - "8000:8000"
+        
+        depends_on:
+            - db
+    db:
+        image: postgres 
+        container_name: db
+        environment: 
+            - POSTGRES_DB=accountability
+            - POSTGRES_USER=postgres
+            - POSTGRES_PASSWORD=postgres
+            - APP_DB_USER=develop
+            - APP_DB_PASS=develop
+            - APP_DB_NAME=accountability
+        volumes: 
+            # persist the data locally
+            - pg-data:/var/lib/postgresql/data/
+            # copy the initialization scripts inside the container, to create table
+            - ./db:/docker-entrypoint-initdb.d/
+        ports:
+            - "5433:5432"
+    pgadmin:  
+        image: dpage/pgadmin4  
+        environment:
+            PGADMIN_DEFAULT_EMAIL: ${PGADMIN_DEFAULT_EMAIL:-pgadmin4@pgadmin.org}
+            PGADMIN_DEFAULT_PASSWORD: ${PGADMIN_DEFAULT_PASSWORD:-admin}
+            PGADMIN_CONFIG_SERVER_MODE: 'False'  
+        volumes:
+            - pgadmin:/var/lib/pgadmin
+        ports:
+            - "5051:80"
+volumes: 
+    pg-data:
+        driver: local
+    pgadmin:
+        driver: local
